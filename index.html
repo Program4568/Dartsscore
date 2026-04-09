@@ -82,16 +82,16 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 /* GAME 501 */
 .game-body{padding:9px 9px 0;display:flex;flex-direction:column;gap:8px}
 .players-bar{display:flex;flex-direction:column;gap:7px}
-.ptile{background:var(--panel);border:1.5px solid var(--border);border-radius:13px;padding:11px 13px;display:flex;align-items:center;gap:11px;transition:all .28s;position:relative;overflow:hidden}
+.ptile{background:var(--panel);border:1.5px solid var(--border);border-radius:14px;padding:14px 15px;display:flex;align-items:center;gap:12px;transition:all .28s;position:relative;overflow:hidden}
 .ptile.active{border-color:var(--gold);box-shadow:0 0 0 1px rgba(245,183,48,.1)}
 .ptile.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gold),var(--gold2))}
 .ptile.bot.active{border-color:var(--blue);box-shadow:0 0 0 1px rgba(59,158,255,.1)}
 .ptile.bot.active::before{background:linear-gradient(180deg,var(--blue),#80c0ff)}
-.pavatar{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;flex-shrink:0}
+.pavatar{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;flex-shrink:0}
 .pinfo{flex:1;min-width:0}
-.pname{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pmeta{font-size:10px;color:var(--text2);margin-top:1px}
-.pscore{font-family:'Barlow Condensed',sans-serif;font-size:46px;font-weight:700;letter-spacing:1px;line-height:1;flex-shrink:0}
+.pname{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pmeta{font-size:10px;color:var(--text2);margin-top:1px}.plastvisit{font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--gold);margin-top:2px;font-weight:600;letter-spacing:1px}
+.pscore{font-family:'Barlow Condensed',sans-serif;font-size:52px;font-weight:700;letter-spacing:1px;line-height:1;flex-shrink:0}
 .pscore.danger{color:var(--red)}
 .pscore.warn{color:var(--gold)}
 .pscore.ok{color:var(--text)}
@@ -732,9 +732,12 @@ function render501(){
   const bar=document.getElementById('pBar');bar.innerHTML='';
   g.pl.forEach((p,i)=>{
     const a=i===g.cur;const sc=p.score<=40?'danger':p.score<=100?'warn':'ok';
-    const sc501=501-p.score;const meta=p.darts>0?`${p.darts*3} strelica · avg/visit: ${(sc501/p.darts).toFixed(1)}`:'Još nije bacao';
+    const sc501=501-p.score;
+    const avgStr=p.darts>0?`avg: ${(sc501/p.darts).toFixed(1)}`:'';
+    const lastV=p.visits&&p.visits.length>0?p.visits[p.visits.length-1]:null;
+    const lastVStr=lastV!==null?`Zadnji: ${lastV}`:'';
     const d=document.createElement('div');d.className='ptile'+(a?' active':'')+(p.bot?' bot':'');
-    d.innerHTML=`<div class="pavatar" style="background:${p.color}15;color:${p.color};border:1.5px solid ${p.color}35">${p.bot?'🤖':p.name[0].toUpperCase()}</div><div class="pinfo"><div class="pname">${p.name}</div><div class="pmeta">${meta}</div></div><div class="pscore ${sc}">${p.score}</div>`;
+    d.innerHTML=`<div class="pavatar" style="background:${p.color}15;color:${p.color};border:1.5px solid ${p.color}35">${p.bot?'🤖':p.name[0].toUpperCase()}</div><div class="pinfo"><div class="pname">${p.name}</div><div class="pmeta">${avgStr}</div>${lastVStr?`<div class="plastvisit">${lastVStr}</div>`:''}</div><div class="pscore ${sc}">${p.score}</div>`;
     bar.appendChild(d);
   });
   const p=g.pl[g.cur];
@@ -1436,9 +1439,8 @@ function startMic(inputId, btnId, statusId){
 
   micRecognition=new SpeechRec();
   micRecognition.lang='hr-HR';
-  try{micRecognition.lang='hr-HR';}catch(e){}
-  micRecognition.interimResults=true;
-  micRecognition.maxAlternatives=5;
+  micRecognition.interimResults=false;// wait for full utterance
+  micRecognition.maxAlternatives=8;
   micRecognition.continuous=false;
 
   micRecognition.onstart=()=>{
@@ -1448,28 +1450,22 @@ function startMic(inputId, btnId, statusId){
     inp.placeholder='Govori broj...';
   };
 
-  let micTriggered=false;
   micRecognition.onresult=(e)=>{
-    if(micTriggered)return;
-    // Try to find a number in ANY result (interim or final)
     let found=null;
-    for(let r=0;r<e.results.length;r++){
-      for(let a=0;a<e.results[r].length;a++){
-        const transcript=e.results[r][a].transcript.trim();
-        status.textContent='🎤 '+transcript;
-        const num=parseSpokenNumber(transcript);
-        if(num!==null&&num>=0&&num<=180){found=num;break;}
-      }
-      if(found!==null)break;
+    // Collect all transcripts from this result
+    const result=e.results[e.results.length-1];
+    for(let a=0;a<result.length;a++){
+      const transcript=result[a].transcript.trim();
+      status.textContent='🎤 '+transcript;
+      const num=parseSpokenNumber(transcript);
+      if(num!==null&&num>=0&&num<=180){found=num;break;}
     }
     if(found!==null){
-      micTriggered=true;
       micRecognition.stop();
       inp.value=found;
       btn.classList.remove('listening');
       btn.classList.add('success');
       status.textContent=`✅ ${found}`;
-      // Immediately confirm - no delay
       if(inputId==='dInp')confirmDirect();
       else if(inputId==='d121Inp')confirm121Direct();
       setTimeout(()=>{btn.classList.remove('success');status.textContent='';},800);
@@ -1561,6 +1557,10 @@ function parseSpokenNumber(text){
       if(a===100)return 100+b+c;
     }
   }
+  // Try treating entire spoken text as digits (e.g. "jedan osam nula" = 180)
+  const digitWords={'nula':'0','jedan':'1','jedna':'1','dva':'2','dvije':'2','tri':'3','četiri':'4','pet':'5','šest':'6','sedam':'7','osam':'8','devet':'9','zero':'0','one':'1','two':'2','three':'3','four':'4','five':'5','six':'6','seven':'7','eight':'8','nine':'9'};
+  const digitStr=parts.map(p=>digitWords[p]).filter(x=>x!==undefined).join('');
+  if(digitStr.length>0){const n=parseInt(digitStr);if(!isNaN(n)&&n>=0&&n<=180)return n;}
   return null;
 }
 
@@ -1682,6 +1682,7 @@ function loadNames(){
     try{
       const v=localStorage.getItem('pname_'+id);
       const el=document.getElementById(id);
+      
       if(v&&el)el.value=v;
     }catch(e){}
   });
