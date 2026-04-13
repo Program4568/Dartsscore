@@ -127,7 +127,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .itoggle{display:flex;background:rgba(0,0,0,.3);border-radius:9px;padding:3px;margin-bottom:9px;border:1px solid var(--border);gap:2px}
 .itbtn{flex:1;padding:7px;border:none;background:transparent;color:var(--text2);font-family:'Barlow',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;border-radius:7px;transition:all .2s}
 .itbtn.on{background:var(--panel2);color:var(--text);box-shadow:0 2px 10px rgba(0,0,0,.5)}
-.direct-wrap{display:flex;gap:7px;margin-bottom:8px;align-items:stretch}
+.direct-wrap{display:flex;gap:7px;margin-bottom:8px;align-items:stretch;overflow:hidden;border-radius:12px}
 .score-inp{flex:1;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:12px;padding:10px 12px;color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;letter-spacing:2px;outline:none;text-align:center;transition:all .2s;-moz-appearance:textfield}
 .score-inp::-webkit-outer-spin-button,.score-inp::-webkit-inner-spin-button{-webkit-appearance:none}
 .score-inp:focus{border-color:var(--gold);background:rgba(245,183,48,.03);box-shadow:0 0 0 3px rgba(245,183,48,.06)}
@@ -160,7 +160,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .kbtn:active{transform:scale(.88);background:rgba(245,183,48,.1)}
 .kbtn.del{color:var(--red);border-color:rgba(232,66,58,.2);background:rgba(232,66,58,.04)}
 .crow{display:flex;gap:6px;margin-top:6px}
-.undo-btn{background:rgba(255,255,255,.02);border:1.5px solid var(--border2);border-radius:10px;padding:11px 14px;color:var(--text2);cursor:pointer;font-weight:700;font-size:14px;transition:all .18s;flex-shrink:0}
+.direct-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.dnbtn{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;height:52px;font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--text);cursor:pointer;transition:all .13s;display:flex;align-items:center;justify-content:center}
+.dnbtn:active{transform:scale(.88);background:rgba(245,183,48,.12);border-color:rgba(245,183,48,.3);color:var(--gold)}
+.dnbtn.del{color:var(--red);border-color:rgba(232,66,58,.2);background:rgba(232,66,58,.04)}
+.dnbtn.ok{background:linear-gradient(135deg,#f5b730,#e07020);border:none;color:#000;font-size:18px;letter-spacing:3px;font-weight:800}
+.undo-btn{background:rgba(255,255,255,.02);border:1.5px solid var(--border2);border-radius:10px;padding:11px 16px;color:var(--text2);cursor:pointer;font-weight:700;font-size:14px;transition:all .18s;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .undo-btn:hover{border-color:var(--text3);color:var(--text)}
 .confirm-btn{flex:1;background:linear-gradient(135deg,#f5b730,#e07020);border:none;border-radius:10px;padding:11px;font-family:'Barlow Condensed',sans-serif;font-size:19px;letter-spacing:4px;color:#000;font-weight:800;cursor:pointer;transition:all .18s;box-shadow:0 4px 16px rgba(245,183,48,.25)}
 .confirm-btn:active{transform:scale(.97)}
@@ -252,7 +257,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .mic-btn{
   background:var(--panel);border:1.5px solid var(--border2);border-radius:12px;
   padding:12px 16px;font-size:22px;cursor:pointer;transition:all .2s;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;align-self:stretch;
 }
 .mic-btn.listening{
   background:rgba(232,66,58,.15);border-color:var(--red);
@@ -496,12 +501,26 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
           </div>
           <div id="directUI">
             <div class="direct-wrap">
-              <input class="score-inp" id="dInp" type="number" min="0" max="180" placeholder="Ukupno 0–180" inputmode="numeric">
-              <button class="ok-btn" onclick="confirmDirect()">OK</button>
+              <button class="undo-btn" onclick="undoK()" title="Poništi zadnji unos"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
+              <input class="score-inp" id="dInp" type="number" min="0" max="180" placeholder="0–180" inputmode="none" readonly style="cursor:default">
               <button class="mic-btn" id="micBtn501" onclick="startMic('dInp','micBtn501','micStatus501')" title="Govori rezultat">🎤</button>
             </div>
             <div class="mic-status" id="micStatus501"></div>
-            <div id="coBoxDirect" style="display:none;background:rgba(40,191,114,.07);border:1px solid rgba(40,191,114,.2);border-radius:8px;padding:8px 10px;margin-bottom:6px">
+            <div class="direct-numpad">
+              <button class="dnbtn" onclick="dnPress('dInp',7)">7</button>
+              <button class="dnbtn" onclick="dnPress('dInp',8)">8</button>
+              <button class="dnbtn" onclick="dnPress('dInp',9)">9</button>
+              <button class="dnbtn" onclick="dnPress('dInp',4)">4</button>
+              <button class="dnbtn" onclick="dnPress('dInp',5)">5</button>
+              <button class="dnbtn" onclick="dnPress('dInp',6)">6</button>
+              <button class="dnbtn" onclick="dnPress('dInp',1)">1</button>
+              <button class="dnbtn" onclick="dnPress('dInp',2)">2</button>
+              <button class="dnbtn" onclick="dnPress('dInp',3)">3</button>
+              <button class="dnbtn del" onclick="dnDel('dInp')"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg></button>
+              <button class="dnbtn" onclick="dnPress('dInp',0)">0</button>
+              <button class="dnbtn ok" onclick="confirmDirect()">OK</button>
+            </div>
+            <div id="coBoxDirect" style="display:none;background:rgba(40,191,114,.07);border:1px solid rgba(40,191,114,.2);border-radius:8px;padding:8px 10px;margin-top:8px">
               <div style="font-size:7px;letter-spacing:3px;color:rgba(40,191,114,.5);text-transform:uppercase;margin-bottom:2px">💡 Checkout</div>
               <div id="coTextDirect" style="font-size:12px;color:var(--green);font-weight:600"></div>
             </div>
@@ -525,7 +544,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
             </div>
             <div class="kpad" id="kPad"></div>
             <div class="crow">
-              <button class="undo-btn" onclick="undoK()">↩</button>
+              <button class="undo-btn" onclick="undoK()" title="Poništi zadnji unos"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
               <button class="confirm-btn" id="cBtn" onclick="confirmRound()" disabled>POTVRDI RUNDU</button>
             </div>
           </div>
@@ -559,9 +578,24 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
         </div>
         <div id="d121UI">
           <div class="direct-wrap">
-            <input class="score-inp" id="d121Inp" type="number" placeholder="Bodovi ovog visita" inputmode="numeric">
-            <button class="ok-btn" onclick="confirm121Direct()">OK</button>
+            <button class="undo-btn" onclick="undo121()" title="Poništi zadnji unos"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
+            <input class="score-inp" id="d121Inp" type="number" placeholder="0–180" inputmode="none" readonly style="cursor:default">
             <button class="mic-btn" id="micBtn121" onclick="startMic('d121Inp','micBtn121','micStatus121')" title="Govori rezultat">🎤</button>
+          </div>
+          <div class="mic-status" id="micStatus121"></div>
+          <div class="direct-numpad">
+            <button class="dnbtn" onclick="dnPress('d121Inp',7)">7</button>
+            <button class="dnbtn" onclick="dnPress('d121Inp',8)">8</button>
+            <button class="dnbtn" onclick="dnPress('d121Inp',9)">9</button>
+            <button class="dnbtn" onclick="dnPress('d121Inp',4)">4</button>
+            <button class="dnbtn" onclick="dnPress('d121Inp',5)">5</button>
+            <button class="dnbtn" onclick="dnPress('d121Inp',6)">6</button>
+            <button class="dnbtn" onclick="dnPress('d121Inp',1)">1</button>
+            <button class="dnbtn" onclick="dnPress('d121Inp',2)">2</button>
+            <button class="dnbtn" onclick="dnPress('d121Inp',3)">3</button>
+            <button class="dnbtn del" onclick="dnDel('d121Inp')"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg></button>
+            <button class="dnbtn" onclick="dnPress('d121Inp',0)">0</button>
+            <button class="dnbtn ok" onclick="confirm121Direct()">OK</button>
           </div>
           <div class="mic-status" id="micStatus121"></div>
         </div>
@@ -583,7 +617,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
           </div>
           <div class="kpad" id="k121Pad"></div>
           <div class="crow">
-            <button class="undo-btn" onclick="undo121()">↩</button>
+            <button class="undo-btn" onclick="undo121()" title="Poništi zadnji unos"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
             <button class="confirm-btn" id="c121Btn" onclick="confirm121Round()" disabled>POTVRDI</button>
           </div>
         </div>
@@ -683,8 +717,8 @@ let g={pl:[],cur:0,hist:[],im:'direct',mult:1,throws:[]};
 let g21={name:'',target:121,scorer:null,totalR:10,dartsA:3,curR:0,hits:0,misses:0,results:[],throws:[],visit:1,visitScore:0,mult:1,im:'direct',statDoubleAttempts:0,statDoubleHits:0,statDartsOnDouble:[],statCheckoutScores:[],statVisitScores:[],statVisitCount:0};
 
 // ─── NAV ─────────────────────────────────────────────────────────────────────
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.getElementById('backBtn').classList.toggle('show',id!=='homeScreen')}
-function goHome(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('show'));showScreen('homeScreen')}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.getElementById('backBtn').classList.toggle('show',id!=='homeScreen');const inGame=id==='game501'||id==='game121';const ib=document.getElementById('installBtn');if(ib)ib.style.display=inGame?'none':'flex';}
+function goHome(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('show'));showScreen('homeScreen');const ib=document.getElementById('installBtn');if(ib)ib.style.display='flex';}
 
 // ─── SETUP 501 ───────────────────────────────────────────────────────────────
 function setOp(o){op=o;document.getElementById('opHuman').classList.toggle('on',o==='human');document.getElementById('opBot').classList.toggle('on',o==='bot');document.getElementById('humanCard').classList.toggle('hidden',o==='bot');document.getElementById('botCard').classList.toggle('hidden',o==='human');const fc=document.getElementById('firstThrowCard');if(fc)fc.classList.toggle('hidden',o==='bot');}
@@ -736,7 +770,7 @@ function updateLegDisplay(){
   if(!ld)return;
   ld.style.display='flex';
   ls.textContent=`${g.pl[0].wins} : ${g.pl[1]?g.pl[1].wins:0}`;
-  li.textContent=g.legs>1?`Leg ${g.leg} / ${g.legs}`:`Leg ${g.leg}`;
+  li.textContent=g.legs>1?`First to ${g.legs} — Leg ${g.leg}`:`Leg ${g.leg}`;
 }
 
 // ─── 501 RENDER ──────────────────────────────────────────────────────────────
@@ -789,6 +823,8 @@ function setIM(m){g.im=m;g.throws=[];g.mult=1;document.getElementById('itD').cla
 function resetMult(){g.mult=1;['mS','mD','mT'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on')});const ms=document.getElementById('mS');if(ms)ms.classList.add('on')}
 function setM(v,id){g.mult=v;['mS','mD','mT'].forEach(i=>document.getElementById(i).classList.remove('on'));document.getElementById(id).classList.add('on')}
 
+function dnPress(id,d){const el=document.getElementById(id);const cur=el.value||'';const next=cur+d;const n=parseInt(next);if(n<=180)el.value=next;}
+function dnDel(id){const el=document.getElementById(id);el.value=el.value.slice(0,-1);}
 function confirmDirect(){const inp=document.getElementById('dInp');const v=parseInt(inp.value);inp.value='';if(isNaN(v)||v<0||v>180)return;applyScore(v)}
 document.getElementById('dInp').addEventListener('keydown',e=>{if(e.key==='Enter')confirmDirect()});
 
@@ -811,7 +847,19 @@ function kT(base){
 }
 function undoK(){
   if(g.throws.length>0){g.throws.pop();g.mult=1;resetMult();renderHumanUI();}
-  else if(g.hist.length>0){const h=g.hist.pop();g.cur=h.pi;g.pl[h.pi].score=h.score;g.pl[h.pi].darts-=h.dartsUsed;g.pl[h.pi].rounds--;g.throws=[];g.mult=1;resetMult();render501();}
+  else if(g.hist.length>0){
+    const h=g.hist.pop();
+    g.cur=h.pi;
+    const pl=g.pl[h.pi];
+    pl.score=h.score;
+    pl.darts=Math.max(0,pl.darts-h.dartsUsed);
+    pl.rounds=Math.max(0,pl.rounds-1);
+    pl.legDarts=Math.max(0,(pl.legDarts||0)-3);
+    if(pl.visits&&pl.visits.length>0)pl.visits.pop();
+    if(pl.first9&&pl.first9.length>0&&pl.visits&&pl.visits.length<3)pl.first9.pop();
+    g.throws=[];g.mult=1;resetMult();
+    render501();
+  }
 }
 function confirmRound(){const sum=g.throws.reduce((a,b)=>a+b,0);finishRound(sum,g.throws.length)}
 
@@ -880,8 +928,7 @@ function checkLegWin(p,pi,totalLegDarts){
   continueAfterLegWin(p,pi);
 }
 function continueAfterLegWin(p,pi){
-  const totalLegsPlayed=g.pl.reduce((a,pl)=>a+pl.wins,0);
-  const matchOver=totalLegsPlayed>=g.legs;
+  const matchOver=p.wins>=g.legs;
   // Always close all overlays
   ['ovDart501','ovDblMiss','ovBust','ov180'].forEach(id=>{
     const e=document.getElementById(id);if(e)e.classList.remove('show');
@@ -905,7 +952,9 @@ function continueAfterLegWin(p,pi){
       pl.dblHits=0;
     });
     g.hist=[];g.throws=[];g.mult=1;resetMult();
-    g.cur=(pi+1)%g.pl.length;
+    // Alternating start: next leg starts with the other player
+    g.legFirstPlayer=(g.legFirstPlayer+1)%g.pl.length;
+    g.cur=g.legFirstPlayer;
     updateLegDisplay();render501();
     if(g.pl[g.cur].bot)setTimeout(doBotTurn,1000);
   }
@@ -1487,12 +1536,20 @@ function startMic(inputId, btnId, statusId){
   };
 
   let micDone=false;
+  let micTimer=null;
   micRecognition.onresult=(e)=>{
     if(micDone)return;
-    for(let r=0;r<e.results.length;r++){
-      for(let a=0;a<e.results[r].length;a++){
-        const t=e.results[r][a].transcript.trim();
-        status.textContent='🎤 '+t;
+    // Show interim transcript while speaking
+    const latest=e.results[e.results.length-1];
+    status.textContent='🎤 '+latest[0].transcript.trim();
+    // Only process FINAL results
+    if(!latest.isFinal)return;
+    // Wait 600ms after final result so full phrase is captured
+    if(micTimer)clearTimeout(micTimer);
+    micTimer=setTimeout(()=>{
+      if(micDone)return;
+      for(let a=0;a<latest.length;a++){
+        const t=latest[a].transcript.trim();
         const num=parseSpokenNumber(t);
         if(num!==null&&num>=0&&num<=180){
           micDone=true;
@@ -1508,7 +1565,7 @@ function startMic(inputId, btnId, statusId){
           return;
         }
       }
-    }
+    },600);
   };
 
   micRecognition.onerror=(e)=>{
