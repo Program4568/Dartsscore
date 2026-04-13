@@ -364,7 +364,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
     <div class="home-body">
       <div class="home-hero">
         <div class="hero-eyebrow">Odaberi mod igre</div>
-        <div class="hero-title">DARTS<span style="-webkit-text-fill-color:var(--gold)">SCORE</span></div>
+        <div class="hero-title">DARTS<span style="-webkit-text-fill-color:var(--text)">SCORE</span></div>
         <div class="hero-desc" style="font-style:italic;letter-spacing:1px">Darts Scoring App</div>
       </div>
       <div class="sec-label">Načini igre</div>
@@ -1762,34 +1762,27 @@ const manifestURL = URL.createObjectURL(manifestBlob);
 document.getElementById('manifest-placeholder').setAttribute('href', manifestURL);
 
 let deferredPrompt = null;
-const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-
-// On iOS always show install button (no beforeinstallprompt)
-if(isIOS){
-  const mb=document.getElementById('installMenuBtn');
-  if(mb)mb.style.display='flex';
-}
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
   const mb=document.getElementById('installMenuBtn');
   if(mb)mb.style.display='flex';
+  const ib=document.getElementById('installBtn');
+  if(ib)ib.style.display='flex';
 });
 window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
   const mb=document.getElementById('installMenuBtn');if(mb)mb.style.display='none';
+  const ib=document.getElementById('installBtn');if(ib)ib.style.display='none';
 });
 function installApp() {
-  if(isIOS){
-    alert('Za instalaciju na iPhone/iPad:\nPritisni Dijeli → Dodaj na početni zaslon');
-    return;
-  }
   if (deferredPrompt) {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then(() => {
       deferredPrompt = null;
       const mb=document.getElementById('installMenuBtn');if(mb)mb.style.display='none';
+      const ib=document.getElementById('installBtn');if(ib)ib.style.display='none';
     });
   }
 }
