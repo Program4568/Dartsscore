@@ -1,324 +1,89 @@
-<!DOCTYPE html>
-<html lang="hr">
-<head>
-<meta charset="UTF-8">
-<title>Kalkulator ocjena</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-
-/* 🔥 iPhone FULL FIX */
-html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-}
-
-body {
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
-    min-height: 100dvh;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    padding: 20px 0 40px;
-
-    -webkit-overflow-scrolling: touch;
-
-    position: relative;
-    color: white;
-    font-family: 'Segoe UI', sans-serif;
-}
-
-/* 🔥 background fix */
-body::before {
-    content: "";
-    position: fixed;
-    top: -80px;
-    left: -80px;
-    right: -80px;
-    bottom: -80px;
-
-    background: linear-gradient(135deg, #0f172a, #0b3a5a, #1e1b4b);
-
-    z-index: -999;
-}
-
-/* naslov */
-h1 {
-    margin: 0;
-    padding: 20px 0 10px;
-    text-align: center;
-    font-size: 2.2em;
-
-    background: linear-gradient(90deg, #38bdf8, #a78bfa, #60a5fa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-/* box */
-.box {
-    width: 440px;
-    max-width: 92%;
-    padding: 25px;
-
-    border-radius: 20px;
-
-    background: rgba(255,255,255,0.10);
-    backdrop-filter: blur(12px);
-
-    box-shadow: 0 15px 35px rgba(0,0,0,0.35);
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* ocjene */
-.ocjena-card {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    margin: 8px 0;
-    padding: 12px 15px;
-    width: 100%;
-
-    border-radius: 14px;
-    background: rgba(255,255,255,0.08);
-
-    gap: 10px;
-}
-
-/* input */
-input {
-    width: 100px;
-    padding: 10px;
-
-    border-radius: 10px;
-    border: none;
-
-    text-align: center;
-    font-size: 1.1em;
-
-    background: rgba(255,255,255,0.06);
-    color: white;
-}
-
-/* gumbi */
-button {
-    padding: 12px 18px;
-
-    border: none;
-    border-radius: 12px;
-
-    font-weight: bold;
-    cursor: pointer;
-
-    background: #38bdf8;
-    color: white;
-
-    transition: 0.25s;
-}
-
-button:hover {
-    transform: scale(1.05);
-    opacity: 0.9;
-}
-
-/* delete */
-.delete {
-    background: #fb7185;
-    padding: 6px 12px;
-}
-
-/* MENU GUMB 🔥 */
-.menu-btn {
-    background: linear-gradient(135deg, #22c55e, #4ade80);
-    box-shadow: 0 5px 15px rgba(34,197,94,0.4);
-}
-
-.menu-btn:hover {
-    transform: scale(1.08);
-    box-shadow: 0 8px 25px rgba(34,197,94,0.7);
-}
-
-/* grupa */
-.btn-group {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 10px;
-    width: 100%;
-}
-
-/* rezultat */
-.avg {
-    text-align: center;
-    margin-top: 15px;
-}
-
-.avg-number {
-    font-size: 48px;
-    font-weight: bold;
-}
-
-.small {
-    opacity: 0.85;
-    font-size: 0.9em;
-}
-
-/* HOME SCREEN MENU 🔥 */
-.home-menu {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(10px);
-
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-}
-
-.home-menu button {
-    width: 200px;
-    font-size: 1.1em;
-}
-
-/* animacija */
-@keyframes pop {
-    0% { transform: scale(0.8); }
-    60% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-}
-
-</style>
-</head>
-
-<body>
-
-<h1>Kalkulator ocjena</h1>
-
-<div class="box">
-
-    <div id="ocjene"></div>
-
-    <div class="btn-group">
-        <button onclick="dodaj()">+ Dodaj</button>
-        <button onclick="izracunaj()">Izračunaj</button>
-        <button onclick="obrisiSve()">🗑 Obriši sve</button>
-        <button onclick="promijeniTemu()">💡 Tema</button>
-        <button class="menu-btn" onclick="openMenu()">🏠 Menu</button>
-    </div>
-
-    <div class="avg">
-        <div class="avg-number" id="avg">0.00</div>
-        <div class="small" id="msg"></div>
-    </div>
-
-</div>
-
-<!-- 🔥 HOME SCREEN -->
-<div class="home-menu" id="menu">
-    <button onclick="closeMenu()">❌ Zatvori</button>
-    <button onclick="alert('Tu možeš dodati druge alate 😉')">📊 Statistika</button>
-    <button onclick="alert('Dodaj još stranica!')">📘 Predmeti</button>
-</div>
-
-<script>
-
-function openMenu(){
-    document.getElementById("menu").style.display = "flex";
-}
-
-function closeMenu(){
-    document.getElementById("menu").style.display = "none";
-}
-
-function promijeniTemu(){
-    document.body.classList.toggle('light');
-}
-
-function dodaj(v=""){
-    const wrap = document.createElement("div");
-    wrap.className = "ocjena-card";
-
-    const input = document.createElement("input");
-    input.type = "number";
-    input.min = 1;
-    input.max = 5;
-    input.value = v;
-
-    input.oninput = izracunaj;
-
-    const btn = document.createElement("button");
-    btn.textContent = "X";
-    btn.className = "delete";
-
-    btn.onclick = () => {
-        wrap.remove();
-        izracunaj();
-    };
-
-    wrap.appendChild(input);
-    wrap.appendChild(btn);
-
-    document.getElementById("ocjene").appendChild(wrap);
-
-    izracunaj();
-}
-
-function izracunaj(){
-    const inputs = document.querySelectorAll("input");
-
-    let sum = 0, count = 0;
-
-    inputs.forEach(i=>{
-        let v = Number(i.value);
-        if(v>=1 && v<=5){
-            sum += v;
-            count++;
-        }
-    });
-
-    const avg = document.getElementById("avg");
-    const msg = document.getElementById("msg");
-
-    if(count===0){
-        avg.textContent="0.00";
-        msg.textContent="";
-        return;
+let g={pl:[],cur:0,hist:[],im:'direct',mult:1,throws:[]};
+let g21={name:'',target:121,scorer:null,totalR:10,dartsA:3,curR:0,hits:0,misses:0,results:[],throws:[],visit:1,visitScore:0,mult:1,im:'direct',statDoubleAttempts:0,statDoubleHits:0,statDartsOnDouble:[],statCheckoutScores:[],statVisitScores:[],statVisitCount:0,lastResult:null};
+
+// ─── MIKROFON ─────────────────────────────────────────────────────────────────
+let micRecognition=null;
+let micActive=false;
+let micAutoConfirmTimer=null;
+function startMic(inputId, btnId, statusId){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    const st=document.getElementById(statusId);
+    if(st)st.textContent='Mikrofon nije podržan u ovom pregledniku';
+    return;
+  }
+  if(micActive){
+    if(micRecognition)micRecognition.stop();
+    return;
+  }
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  micRecognition=new SpeechRecognition();
+  micRecognition.lang='hr-HR';
+  micRecognition.interimResults=true;
+  micRecognition.maxAlternatives=5;
+  micRecognition.continuous=false;
+  const btn=document.getElementById(btnId);
+  const st=document.getElementById(statusId);
+  const inp=document.getElementById(inputId);
+  micActive=true;
+  if(btn)btn.classList.add('listening');
+  if(st)st.textContent='Slušam...';
+
+  function applyResult(found){
+    if(micAutoConfirmTimer){clearTimeout(micAutoConfirmTimer);micAutoConfirmTimer=null;}
+    if(micRecognition){try{micRecognition.stop();}catch(e){}}
+    micActive=false;
+    if(found!==null){
+      if(inp)inp.value=found;
+      if(btn){btn.classList.remove('listening');btn.classList.add('success');setTimeout(()=>btn.classList.remove('success'),1200);}
+      if(st)st.textContent='✓ '+found;
+      // Auto-confirm after 800ms so user sees the number before it submits
+      micAutoConfirmTimer=setTimeout(()=>{
+        if(st)st.textContent='';
+        // Trigger confirm for the right game
+        if(inputId==='dInp')confirmDirect();
+        else if(inputId==='d121Inp')confirm121Direct();
+      },800);
+    } else {
+      if(btn)btn.classList.remove('listening');
+      if(st)st.textContent='Nisam razumio, pokušaj opet';
+      setTimeout(()=>{if(st)st.textContent='';},2500);
     }
+  }
 
-    let p = sum / count;
+  function parseSpoken(transcript){
+    const nums=transcript.trim().match(/\d+/g);
+    if(nums){const n=parseInt(nums[0]);if(n>=0&&n<=180&&isValidScore(n))return n;}
+    return null;
+  }
 
-    avg.textContent = p.toFixed(2);
-
-    avg.style.animation = "pop 0.5s";
-    setTimeout(()=> avg.style.animation="", 500);
-
-    msg.textContent =
-        p>=4.5 ? "🔥 Odličan" :
-        p>=3.5 ? "👍 Vrlo dobar" :
-        p>=2.5 ? "🙂 Dobar" :
-        "😬 Treba učiti";
+  micRecognition.onresult=(e)=>{
+    const result=e.results[e.results.length-1];
+    if(result.isFinal){
+      let found=null;
+      for(let i=0;i<result.length;i++){
+        const f=parseSpoken(result[i].transcript);
+        if(f!==null){found=f;break;}
+      }
+      applyResult(found);
+    } else {
+      // Show interim result as preview
+      const interim=parseSpoken(result[0].transcript);
+      if(interim!==null&&st)st.textContent='Čujem: '+interim+'...';
+    }
+  };
+  micRecognition.onerror=(e)=>{
+    if(btn)btn.classList.remove('listening');
+    if(st)st.textContent=e.error==='not-allowed'?'Dopusti pristup mikrofonu':'Greška mikrofona';
+    setTimeout(()=>{if(st)st.textContent='';},2500);
+    micActive=false;
+  };
+  micRecognition.onend=()=>{
+    micActive=false;
+    if(btn)btn.classList.remove('listening');
+  };
+  micRecognition.start();
 }
 
-function obrisiSve(){
-    document.getElementById("ocjene").innerHTML = "";
-    izracunaj();
-}
-
-dodaj();
-
-</script>
-
-</body>
-</html>
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.getElementById('backBtn').classList.toggle('show',id!=='homeScreen');const inGame=id==='game501'||id==='game121';const ib=document.getElementById('installBtn');if(ib)ib.style.display=inGame?'none':'flex';}
+function goHome(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('show'));showScreen('homeScreen');const ib=document.getElementById('installBtn');if(ib)ib.style.display='flex';}
