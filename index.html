@@ -719,87 +719,71 @@ let pendingDblMiss=null;
 let g={pl:[],cur:0,hist:[],im:'direct',mult:1,throws:[]};
 let g21={name:'',target:121,scorer:null,totalR:10,dartsA:3,curR:0,hits:0,misses:0,results:[],throws:[],visit:1,visitScore:0,mult:1,im:'direct',statDoubleAttempts:0,statDoubleHits:0,statDartsOnDouble:[],statCheckoutScores:[],statVisitScores:[],statVisitCount:0,lastResult:null};
 
-// ─── MIKROFON ─────────────────────────────────────────────────────────────────
-let micRecognition=null;
-let micActive=false;
-let micAutoConfirmTimer=null;
-function startMic(inputId, btnId, statusId){
-  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
-    const st=document.getElementById(statusId);
-    if(st)st.textContent='Mikrofon nije podržan u ovom pregledniku';
-    return;
-  }
-  if(micActive){
-    if(micRecognition)micRecognition.stop();
-    return;
-  }
-  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  micRecognition=new SpeechRecognition();
-  micRecognition.lang='hr-HR';
-  micRecognition.interimResults=true;
-  micRecognition.maxAlternatives=5;
-  micRecognition.continuous=false;
-  const btn=document.getElementById(btnId);
-  const st=document.getElementById(statusId);
-  const inp=document.getElementById(inputId);
-  micActive=true;
-  if(btn)btn.classList.add('listening');
-  if(st)st.textContent='Slušam...';
+// Nemoguci 3-dart rezultati
+const IMPOSSIBLE_SCORES=new Set([163,166,169,172,173,175,176,178,179]);
+function isValidScore(n){return n>=0&&n<=180&&!IMPOSSIBLE_SCORES.has(n);}
 
-  function applyResult(found){
-    if(micAutoConfirmTimer){clearTimeout(micAutoConfirmTimer);micAutoConfirmTimer=null;}
-    if(micRecognition){try{micRecognition.stop();}catch(e){}}
-    micActive=false;
-    if(found!==null){
-      if(inp)inp.value=found;
-      if(btn){btn.classList.remove('listening');btn.classList.add('success');setTimeout(()=>btn.classList.remove('success'),1200);}
-      if(st)st.textContent='✓ '+found;
-      // Auto-confirm after 800ms so user sees the number before it submits
-      micAutoConfirmTimer=setTimeout(()=>{
-        if(st)st.textContent='';
-        // Trigger confirm for the right game
-        if(inputId==='dInp')confirmDirect();
-        else if(inputId==='d121Inp')confirm121Direct();
-      },800);
-    } else {
-      if(btn)btn.classList.remove('listening');
-      if(st)st.textContent='Nisam razumio, pokušaj opet';
-      setTimeout(()=>{if(st)st.textContent='';},2500);
-    }
-  }
+// ─── DARTS TTS (Web Speech API) ───────────────────────────────────────────────
+function numToWords(n){
+  if(n===0)return'zero';
+  const ones=['','one','two','three','four','five','six','seven','eight','nine',
+    'ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+  const tens=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+  if(n<20)return ones[n];
+  if(n<100){const t=tens[Math.floor(n/10)];const o=ones[n%10];return o?t+' '+o:t;}
+  if(n===100)return'one hundred';
+  if(n<200){const r=n-100;return r?'one hundred and '+numToWords(r):'one hundred';}
+  return n+'';
+}
+function dartsPhrase(score){
+  if(score===180)return'one hundred and eighty';
+  if(score===50)return'bull';
+  if(score===25)return'twenty five';
+  if(score===0)return'no score';
+  if(score>=100&&score<=180){const r=score%100;return'one hundred and '+numToWords(r);}
+  return numToWords(score);
+}
 
-  function parseSpoken(transcript){
-    const nums=transcript.trim().match(/\d+/g);
-    if(nums){const n=parseInt(nums[0]);if(n>=0&&n<=180&&isValidScore(n))return n;}
-    return null;
-  }
+let ttsVoice=null;
+function loadTTSVoice(){
+  const voices=window.speechSynthesis.getVoices();
+  if(!voices.length)return;
+  ttsVoice=
+    voices.find(v=>/daniel/i.test(v.name)&&v.lang.startsWith('en'))||
+    voices.find(v=>/george/i.test(v.name)&&v.lang.startsWith('en'))||
+    voices.find(v=>/james/i.test(v.name)&&v.lang.startsWith('en'))||
+    voices.find(v=>/david/i.test(v.name)&&v.lang.startsWith('en'))||
+    voices.find(v=>/mark/i.test(v.name)&&v.lang.startsWith('en'))||
+    voices.find(v=>v.lang==='en-GB')||
+    voices.find(v=>v.lang.startsWith('en'))||null;
+}
+if(window.speechSynthesis){
+  window.speechSynthesis.onvoiceschanged=loadTTSVoice;
+  loadTTSVoice();
+}
 
-  micRecognition.onresult=(e)=>{
-    const result=e.results[e.results.length-1];
-    if(result.isFinal){
-      let found=null;
-      for(let i=0;i<result.length;i++){
-        const f=parseSpoken(result[i].transcript);
-        if(f!==null){found=f;break;}
-      }
-      applyResult(found);
-    } else {
-      // Show interim result as preview
-      const interim=parseSpoken(result[0].transcript);
-      if(interim!==null&&st)st.textContent='Čujem: '+interim+'...';
-    }
-  };
-  micRecognition.onerror=(e)=>{
-    if(btn)btn.classList.remove('listening');
-    if(st)st.textContent=e.error==='not-allowed'?'Dopusti pristup mikrofonu':'Greška mikrofona';
-    setTimeout(()=>{if(st)st.textContent='';},2500);
-    micActive=false;
-  };
-  micRecognition.onend=()=>{
-    micActive=false;
-    if(btn)btn.classList.remove('listening');
-  };
-  micRecognition.start();
+let ttsPhraseQueue=[];
+let ttsBusy=false;
+function ttsPlayNext(){
+  if(ttsBusy||ttsPhraseQueue.length===0)return;
+  ttsBusy=true;
+  const phrase=ttsPhraseQueue.shift();
+  const utt=new SpeechSynthesisUtterance(phrase);
+  utt.lang='en-GB';utt.rate=0.82;utt.pitch=0;utt.volume=1;
+  if(ttsVoice)utt.voice=ttsVoice;
+  utt.onend=()=>{ttsBusy=false;ttsPlayNext();};
+  utt.onerror=()=>{ttsBusy=false;ttsPlayNext();};
+  window.speechSynthesis.speak(utt);
+}
+function speakScore(score,remaining){
+  if(!window.speechSynthesis)return;
+  ttsPhraseQueue=[];ttsBusy=false;
+  window.speechSynthesis.cancel();
+  ttsPhraseQueue.push(dartsPhrase(score));
+  if(remaining!==undefined&&remaining>0&&remaining<=170){
+    ttsPhraseQueue.push('you require '+dartsPhrase(remaining));
+  }
+  ttsPlayNext();
 }
 
 // ─── NAV ─────────────────────────────────────────────────────────────────────
@@ -914,9 +898,6 @@ function setIM(m){g.im=m;g.throws=[];g.mult=1;document.getElementById('itD').cla
 function resetMult(){g.mult=1;['mS','mD','mT'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on')});const ms=document.getElementById('mS');if(ms)ms.classList.add('on')}
 function setM(v,id){g.mult=v;['mS','mD','mT'].forEach(i=>document.getElementById(i).classList.remove('on'));document.getElementById(id).classList.add('on')}
 
-// Nemoguci 3-dart rezultati
-const IMPOSSIBLE_SCORES=new Set([163,166,169,172,173,175,176,178,179]);
-function isValidScore(n){return n>=0&&n<=180&&!IMPOSSIBLE_SCORES.has(n);}
 
 function dnPress(id,d){const el=document.getElementById(id);const cur=el.value||'';const next=cur+d;const n=parseInt(next);if(!isNaN(n)&&n>=0&&n<=180)el.value=next;}
 function dnDel(id){const el=document.getElementById(id);el.value=el.value.slice(0,-1);}
@@ -984,6 +965,7 @@ function applyScore(val){
   }
   const wasInCO=rem<=170;// score AFTER deducting - correct checkout zone check
   g.hist.push({pi:g.cur,score:p.score,dartsUsed:1});p.score=rem;p.darts+=1;p.rounds++;g.throws=[];
+  speakScore(val,rem);
   if(wasInCO){
     // Ask how many darts thrown at double this visit
     document.getElementById('ovDblMissScore').textContent=`Ostaje: ${rem}`;
@@ -1091,6 +1073,7 @@ function finishRound(sum,dartsUsed){
   }
   const wasInCO2=p.score<=170;
   g.hist.push({pi:g.cur,score:p.score,dartsUsed});p.score=rem;p.darts+=dartsUsed;p.rounds++;g.throws=[];g.mult=1;resetMult();
+  speakScore(sum,rem);
   if(wasInCO2){
     document.getElementById('ovDblMissScore').textContent=`Ostaje: ${rem}`;
     pendingDblMiss={pi:g.cur,callback:()=>{nextP();render501();if(g.pl[g.cur].bot)setTimeout(doBotTurn,900);}};
@@ -1473,6 +1456,7 @@ function processVisit121(visitScore, dartNum){
   }
   // Scored but not done
   g21.visitScore+=visitScore;
+  speakScore(visitScore, remAfter);
   // Could be attempting double next
   if(remAfter<=40&&remAfter%2===0)g21.statDoubleAttempts++;
   else if(remAfter===50)g21.statDoubleAttempts++;
