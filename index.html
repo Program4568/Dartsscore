@@ -288,7 +288,7 @@ const TRANSLATIONS = {
   gameModes:      { hr: 'Načini igre',           en: 'Game modes' },
   desc501:        { hr: 'Počinješ s 501 bodom. Oduzimaj bodove bacanjem strelica i prvi dođi na točno 0.', en: 'Start with 501 points. Subtract your score with each throw and be the first to reach exactly 0.' },
   game121name:    { hr: 'IGRA 121',              en: 'GAME 121' },
-  desc121:        { hr: 'Trening checkoutova — pogodi točno cilj (double za izlaz). Svaki uspjeh diže cilj, promašaj vraća na banker.', en: 'Checkout training — hit the exact target (double to finish). Each success raises the target, a miss resets to banker.' },
+  desc121:        { hr: 'Trening checkoutova — pogodi točno cilj (double za izlaz). Svaki uspjeh diže cilj, promašaj vraća na početak.', en: 'Checkout training — hit the exact target (double to finish). Each success raises the target, a miss resets to the start.' },
   opponent:       { hr: 'PROTIVNIK',             en: 'OPPONENT' },
   player:         { hr: '👤 Igrač',              en: '👤 Player' },
   numLegs:        { hr: 'BROJ RUNDI (LEGS)',      en: 'NUMBER OF LEGS' },
@@ -334,8 +334,11 @@ const TRANSLATIONS = {
   howManyDarts:   { hr: 'Koliko strelica si bacio na duplo?', en: 'How many darts did you throw at the double?' },
   howManyDarts2:  { hr: 'Koliko si bacao na duplo?',          en: 'How many darts at the double?' },
   bankerUpd:      { hr: '🏁 Početak ažuriran!',              en: '🏁 Banker updated!' },
+  bankerTag:      { hr: '🏁 Početak',                   en: '🏁 Start' },
   checkoutSuggestion: { hr: '💡 Checkout prijedlog', en: '💡 Checkout suggestion' },
   checkoutLabel:      { hr: '💡 Checkout',           en: '💡 Checkout' },
+  downloadBtn:        { hr: '📲 Preuzmi',             en: '📲 Download' },
+  score:              { hr: 'Rezultat',               en: 'Score' },
 };
 
 function applyTranslations() {
@@ -365,6 +368,27 @@ function applyTranslations() {
   document.querySelectorAll('[data-t="menu"]').forEach(el => {
     if (el.closest('#backBtn')) el.textContent = TRANSLATIONS.menu[lang];
   });
+  // Update input default values (only if still default Croatian name)
+  const defNames = ['Igrač 1', 'Igrač 2', 'Player 1', 'Player 2'];
+  document.querySelectorAll('[data-default-name]').forEach(el => {
+    const num = el.getAttribute('data-default-name');
+    const hrName = num === '1' ? 'Igrač 1' : 'Igrač 2';
+    const enName = num === '1' ? 'Player 1' : 'Player 2';
+    // Update placeholder always
+    if (num === '1') el.placeholder = lang === 'en' ? (el.id === 'n121' ? 'Your name' : 'Player 1') : (el.id === 'n121' ? 'Tvoje ime' : 'Igrač 1');
+    else el.placeholder = lang === 'en' ? 'Player 2' : 'Igrač 2';
+    // Update value only if it's still a default name
+    if (defNames.includes(el.value)) {
+      el.value = lang === 'en' ? enName : hrName;
+    }
+  });
+  // Update "who throws first" pills
+  const fp = document.getElementById('ft0');
+  const fp1 = document.getElementById('ft1');
+  const n1val = document.getElementById('n1');
+  const n2val = document.getElementById('n2');
+  if (fp) fp.textContent = (n1val && !defNames.includes(n1val.value)) ? n1val.value : (lang === 'en' ? 'Player 1' : 'Igrač 1');
+  if (fp1) fp1.textContent = (n2val && !defNames.includes(n2val.value)) ? n2val.value : (lang === 'en' ? 'Player 2' : 'Igrač 2');
 }
 
 function toggleLang() {
@@ -495,7 +519,7 @@ function toggleLang() {
           <div class="mc-icon blue">🎯</div>
           <div class="mc-body">
             <div class="mc-name" data-t="game121name">IGRA 121</div>
-            <div class="mc-desc"><span data-t="desc121">Trening checkoutova — pogodi točno cilj (double za izlaz). Svaki uspjeh diže cilj, promašaj vraća na banker.</span></div>
+            <div class="mc-desc"><span data-t="desc121">Trening checkoutova — pogodi točno cilj (double za izlaz). Svaki uspjeh diže cilj, promašaj vraća na početak.</span></div>
           </div>
           <div class="mc-arrow">›</div>
         </div>
@@ -533,8 +557,8 @@ function toggleLang() {
       <div class="card" id="humanCard">
         <div class="card-title" data-t="players">IGRAČI</div>
         <div id="playerInputsList">
-          <div class="prow" data-pi="0"><div class="pdot" style="background:#f5b730"></div><input class="field pname-field" id="n1" placeholder="Igrač 1" value="Igrač 1" oninput="saveName('n1')"><button onclick="removePlayer(0)" style="background:rgba(232,66,58,.15);border:1px solid rgba(232,66,58,.3);border-radius:8px;padding:6px 10px;color:var(--red);cursor:pointer;font-size:16px;flex-shrink:0" title="Ukloni">✕</button></div>
-          <div class="prow" data-pi="1"><div class="pdot" style="background:#3b9eff"></div><input class="field pname-field" id="n2" placeholder="Igrač 2" value="Igrač 2" oninput="saveName('n2')"><button onclick="removePlayer(1)" style="background:rgba(232,66,58,.15);border:1px solid rgba(232,66,58,.3);border-radius:8px;padding:6px 10px;color:var(--red);cursor:pointer;font-size:16px;flex-shrink:0" title="Ukloni">✕</button></div>
+          <div class="prow" data-pi="0"><div class="pdot" style="background:#f5b730"></div><input class="field pname-field" id="n1" placeholder="Igrač 1" value="Igrač 1" data-default-name="1" oninput="saveName('n1')"><button onclick="removePlayer(0)" style="background:rgba(232,66,58,.15);border:1px solid rgba(232,66,58,.3);border-radius:8px;padding:6px 10px;color:var(--red);cursor:pointer;font-size:16px;flex-shrink:0" title="Ukloni">✕</button></div>
+          <div class="prow" data-pi="1"><div class="pdot" style="background:#3b9eff"></div><input class="field pname-field" id="n2" placeholder="Igrač 2" value="Igrač 2" data-default-name="2" oninput="saveName('n2')"><button onclick="removePlayer(1)" style="background:rgba(232,66,58,.15);border:1px solid rgba(232,66,58,.3);border-radius:8px;padding:6px 10px;color:var(--red);cursor:pointer;font-size:16px;flex-shrink:0" title="Ukloni">✕</button></div>
         </div>
         <button onclick="addPlayer501()" style="width:100%;background:var(--bg);border:1.5px dashed var(--border2);border-radius:10px;padding:10px;color:var(--text2);cursor:pointer;font-size:14px;font-weight:600;margin-top:8px;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><span data-t="addPlayer">+ Dodaj igrača</span></button>
       </div>
@@ -548,7 +572,7 @@ function toggleLang() {
       </div>
       <div class="card hidden" id="botCard">
         <div class="card-title" data-t="yourName">TVOJE IME</div>
-        <div class="prow" style="margin-bottom:14px"><div class="pdot" style="background:#f5b730"></div><input class="field" id="n1bot" placeholder="Igrač 1" value="Igrač 1"></div>
+        <div class="prow" style="margin-bottom:14px"><div class="pdot" style="background:#f5b730"></div><input class="field" id="n1bot" placeholder="Igrač 1" value="Igrač 1" data-default-name="1"></div>
         <div class="card-title" data-t="botLevel">RAZINA BOTA</div>
         <div class="diff-grid">
           <div class="diff-card on" id="d0" onclick="setDiff(0)"><div class="diff-icon">😌</div><div class="diff-name" data-t="beginner">POČETNIK</div><div class="diff-avg">~25 po bacanju</div></div>
@@ -566,7 +590,7 @@ function toggleLang() {
     <div class="setup-body">
       <div class="card">
         <div class="card-title" data-t="yourName">TVOJE IME</div>
-        <div class="prow" style="margin-bottom:0"><div class="pdot" style="background:#3b9eff"></div><input class="field" id="n121" placeholder="Tvoje ime" value="Igrač 1"></div>
+        <div class="prow" style="margin-bottom:0"><div class="pdot" style="background:#3b9eff"></div><input class="field" id="n121" placeholder="Tvoje ime" value="Igrač 1" data-default-name="1"></div>
       </div>
       <div class="card">
         <div class="card-title" data-t="numRounds">BROJ RUNDI</div>
@@ -597,7 +621,7 @@ function toggleLang() {
   <div class="screen" id="game501">
     <div class="game-body">
       <div id="legDisplay" style="display:none;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 14px;display:flex;justify-content:space-between;align-items:center">
-        <div style="font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase">Rezultat</div>
+        <div data-t="score" style="font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase">Rezultat</div>
         <div id="legScoreDisplay" style="font-family:'Barlow Condensed',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold)">0 : 0</div>
         <div id="legInfoDisplay" style="font-size:11px;color:var(--text2)">Leg 1/1</div>
       </div>
@@ -618,7 +642,7 @@ function toggleLang() {
           </div>
           <div id="directUI">
             <div class="direct-wrap">
-              <button class="undo-btn" onclick="undoK()" title="Poništi zadnji unos"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
+              <button class="undo-btn" onclick="undoK()" title="Undo"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
               <input class="score-inp" id="dInp" type="number" min="0" max="180" placeholder="0–180" inputmode="none" readonly style="cursor:default">
               <button class="mic-btn" id="micBtn501" onclick="startMic('dInp','micBtn501','micStatus501')" title="Govori rezultat">🎤</button>
             </div>
@@ -661,7 +685,7 @@ function toggleLang() {
             </div>
             <div class="kpad" id="kPad"></div>
             <div class="crow">
-              <button class="undo-btn" onclick="undoK()" title="Poništi zadnji unos"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
+              <button class="undo-btn" onclick="undoK()" title="Undo"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
               <button class="confirm-btn" id="cBtn" onclick="confirmRound()" disabled><span data-t="confirmRound">POTVRDI RUNDU</span></button>
             </div>
           </div>
@@ -678,7 +702,7 @@ function toggleLang() {
         <div class="tc-label" data-t="remaining">Ostaje</div>
         <div class="tc-num" id="t121Num">121</div>
         <div style="display:flex;justify-content:center;gap:16px;margin-top:6px">
-          <div class="banker-tag">🏁 Početak: <span id="bankerVal">—</span></div>
+          <div class="banker-tag"><span data-t="bankerTag">🏁 Početak</span>: <span id="bankerVal">—</span></div>
         </div>
         <!-- CHECKOUT HINT - always visible when possible -->
         <div id="co121Box" style="margin-top:8px;background:rgba(40,191,114,.1);border:1px solid rgba(40,191,114,.3);border-radius:8px;padding:7px 12px;display:none">
@@ -686,7 +710,7 @@ function toggleLang() {
           <div id="co121Text" style="font-size:13px;color:var(--green);font-weight:600"></div>
         </div>
         <div class="rounds-bar" id="rBar" style="margin-top:10px"></div>
-        <div id="last121<span data-t="visit">Visit</span>" style="display:none;margin-top:6px"></div>
+        <div id="last121Visit" style="display:none;margin-top:6px"></div>
         <div class="dart-slots" id="dSlots"></div>
       </div>
       <div class="turn-panel">
@@ -696,7 +720,7 @@ function toggleLang() {
         </div>
         <div id="d121UI">
           <div class="direct-wrap">
-            <button class="undo-btn" onclick="undo121()" title="Poništi zadnji unos"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
+            <button class="undo-btn" onclick="undo121()" title="Undo"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
             <input class="score-inp" id="d121Inp" type="number" placeholder="0–180" inputmode="none" readonly style="cursor:default">
             <button class="mic-btn" id="micBtn121" onclick="startMic('d121Inp','micBtn121','micStatus121')" title="Govori rezultat">🎤</button>
           </div>
@@ -734,7 +758,7 @@ function toggleLang() {
           </div>
           <div class="kpad" id="k121Pad"></div>
           <div class="crow">
-            <button class="undo-btn" onclick="undo121()" title="Poništi zadnji unos"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
+            <button class="undo-btn" onclick="undo121()" title="Undo"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg></button>
             <button class="confirm-btn" id="c121Btn" onclick="confirm121Round()" disabled><span data-t="confirm">POTVRDI</span></button>
           </div>
         </div>
@@ -996,10 +1020,11 @@ function setD(el,n){g21.dartsA=n;document.querySelectorAll('#dPills .pill').forE
 function start501(){
   let names;
   if(op==='bot'){
-    names=[document.getElementById('n1bot').value||'Igrač 1', BOT[diff].name];
+    const botDisplayName = {'Bot Početnik':'Bot Beginner','Bot Srednji':'Bot Intermediate','Bot Napredni':'Bot Advanced','Bot Pro':'Bot Pro'};
+  names=[document.getElementById('n1bot').value||(appLang==='en'?'Player 1':'Igrač 1'), appLang==='en'?(botDisplayName[BOT[diff].name]||BOT[diff].name):BOT[diff].name];
   } else {
     names=getPlayerNames501();
-    if(names.length<2)names.push('Igrač 2');
+    if(names.length<2)names.push(appLang==='en'?'Player 2':'Igrač 2');
   }
   g.pl=names.map((name,i)=>({
     name,score:501,darts:0,rounds:0,
@@ -1336,7 +1361,7 @@ function showWin(p){
   const n0=g.pl[0].name, n1=g.pl[1]?g.pl[1].name:'';
   const legsRow=`
     <div style="text-align:center;margin-bottom:14px">
-      <div style="font-size:9px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">ZAVRŠNI REZULTAT</div>
+      <div style="font-size:9px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">${appLang==='en'?'FINAL RESULT':'ZAVRŠNI REZULTAT'}</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:12px">
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--gold);flex:1;text-align:right">${n0}</div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:42px;font-weight:900;color:var(--text);background:var(--panel);border:1.5px solid var(--border2);padding:4px 20px;border-radius:10px;letter-spacing:4px">${w0} : ${w1}</div>
@@ -1416,7 +1441,7 @@ function updateCheckoutHint(score){
 }
 
 function start121(){
-  g21.name=document.getElementById('n121').value||'Igrač';
+  g21.name=document.getElementById('n121').value||(appLang==='en'?'Player':'Igrač');
   const custom=parseInt(document.getElementById('rCustom')?.value);
   if(custom>=1&&custom<=99)g21.totalR=custom;
   g21.target=121;
@@ -1705,7 +1730,7 @@ function finishAttempt121(success){
     document.getElementById('failScore').textContent=`Ostalo: ${rem}`;
     document.getElementById('failInfo').textContent=`Nije checkout u ${g21.dartsA} strelica`;
     const nextT=g21.scorer!==null?g21.scorer:121;
-    document.getElementById('failNext').textContent=`Sljedeći cilj: ${nextT}`;
+    document.getElementById('failNext').textContent=(appLang==='en'?`Next target: ${nextT}`:`Sljedeći cilj: ${nextT}`);
     document.getElementById('ovFail').classList.add('show');
   }
   g21.visitScore=0;
@@ -1740,7 +1765,7 @@ function showEnd121Stats(){
   document.getElementById('end121Who').textContent=g21.name;
   document.getElementById('end121Info').innerHTML=
     `<b>${g21.hits}/${g21.totalR}</b> izlaza (${pct}%)<br>`+
-    `Početak: ${g21.scorer||'—'} · Avg izlaz: ${avgExit} · Max izlaz: ${maxExit}<br>`+
+    `${appLang==='en'?'Start':'Početak'}: ${g21.scorer||'—'} · ${appLang==='en'?'Avg out':'Avg izlaz'}: ${avgExit} · ${appLang==='en'?'Max out':'Max izlaz'}: ${maxExit}<br>`+
     `Double: ${g21.statDoubleHits}/${g21.statDoubleAttempts} (${dblPct}%)<br>`+
     `1.strelica: ${dart1}× · 2.strelica: ${dart2}× · 3.strelica: ${dart3}×<br>`+
     `Avg prvih 9 (3 visita): ${first9avg} · Max visit: ${maxVisit}`;
@@ -1817,7 +1842,7 @@ function addPlayer501(){
   const id='np'+idx;
   const row=document.createElement('div');
   row.className='prow';row.setAttribute('data-pi',idx);
-  row.innerHTML=`<div class="pdot" style="background:${color}"></div><input class="field pname-field" id="${id}" placeholder="Igrač ${idx+1}" value="Igrač ${idx+1}" oninput="saveName('${id}')"><button onclick="removePlayer(${idx})" style="background:rgba(232,66,58,.15);border:1px solid rgba(232,66,58,.3);border-radius:8px;padding:6px 10px;color:var(--red);cursor:pointer;font-size:16px;flex-shrink:0">✕</button>`;
+  row.innerHTML=`<div class="pdot" style="background:${color}"></div><input class="field pname-field" id="${id}" placeholder="${appLang==='en'?'Player'+(idx+1):'Igrač '+(idx+1)}" value="${appLang==='en'?'Player'+(idx+1):'Igrač '+(idx+1)}" data-default-name="${idx+1}" oninput="saveName('${id}')"><button onclick="removePlayer(${idx})" style="background:rgba(232,66,58,.15);border:1px solid rgba(232,66,58,.3);border-radius:8px;padding:6px 10px;color:var(--red);cursor:pointer;font-size:16px;flex-shrink:0">✕</button>`;
   list.appendChild(row);
   try{const v=localStorage.getItem('pname_'+id);if(v)row.querySelector('input').value=v;}catch(e){}
 }
@@ -1841,7 +1866,7 @@ function getPlayerNames501(){
   const list=document.getElementById('playerInputsList');
   return [...list.children].map((r,i)=>{
     const inp=r.querySelector('input');
-    return inp?inp.value||`Igrač ${i+1}`:`Igrač ${i+1}`;
+    const defN=appLang==='en'?`Player ${i+1}`:`Igrač ${i+1}`;return inp?inp.value||defN:defN;
   });
 }
 
@@ -2144,12 +2169,15 @@ document.getElementById('manifest-placeholder').setAttribute('href', manifestURL
 
 let deferredPrompt = null;
 const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isAndroid=/android/i.test(navigator.userAgent);
 
-// On iOS always show install button (no beforeinstallprompt)
-if(isIOS){
+// Always show install button — hide only after app is actually installed
+(function(){
   const mb=document.getElementById('installMenuBtn');
   if(mb)mb.style.display='flex';
-}
+  const ib=document.getElementById('installBtn');
+  if(ib)ib.style.display='flex';
+})();
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -2166,7 +2194,7 @@ window.addEventListener('appinstalled', () => {
 });
 function installApp() {
   if(isIOS){
-    alert('Za instalaciju na iPhone/iPad:\nPritisni Dijeli → Dodaj na početni zaslon');
+    alert(appLang==='en'?'To install on iPhone/iPad:\nTap Share \u2192 Add to Home Screen':'Za instalaciju na iPhone/iPad:\nPritisni Dijeli \u2192 Dodaj na po\u010detni zaslon');
     return;
   }
   if (deferredPrompt) {
@@ -2176,6 +2204,13 @@ function installApp() {
       const mb=document.getElementById('installMenuBtn');if(mb)mb.style.display='none';
       const ib=document.getElementById('installBtn');if(ib)ib.style.display='none';
     });
+    return;
+  }
+  // PC fallback — browser hasn't fired beforeinstallprompt yet, or already installed
+  if(appLang==='en'){
+    alert('To install on PC (Chrome/Edge):\nClick the install icon (\u2295) in the address bar,\nor open browser menu \u2192 "Install app".');
+  } else {
+    alert('Za instalaciju na PC-u (Chrome/Edge):\nKlikni ikonu instalacije (\u2295) u adresnoj traci,\nili otvori izbornik preglednika \u2192 "Instaliraj aplikaciju".');
   }
 }
 
@@ -2260,6 +2295,6 @@ document.addEventListener('click', function onFirstClick() {
 
 
 
-<button id="installBtn" onclick="installApp()" style="position:fixed;bottom:20px;right:20px;z-index:400;background:linear-gradient(135deg,#f5b730,#d96820);border:none;border-radius:12px;padding:11px 20px;font-family:'Barlow Condensed',sans-serif;font-size:16px;letter-spacing:2px;color:#000;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 18px rgba(245,183,48,.35)">📲 Preuzmi</button>
+<button id="installBtn" onclick="installApp()" style="position:fixed;bottom:20px;right:20px;z-index:400;background:linear-gradient(135deg,#f5b730,#d96820);border:none;border-radius:12px;padding:11px 20px;font-family:'Barlow Condensed',sans-serif;font-size:16px;letter-spacing:2px;color:#000;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 18px rgba(245,183,48,.35)"><span data-t="downloadBtn">📲 Preuzmi</span></button>
 </body>
 </html>
