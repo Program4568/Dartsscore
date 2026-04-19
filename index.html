@@ -980,6 +980,8 @@ function speakScore(score,remaining){
   if(!window.speechSynthesis)return;
   ttsPhraseQueue=[];ttsBusy=false;
   window.speechSynthesis.cancel();
+  // If mic was recently active, delay TTS so audio stream fully closes
+  if(micActive||Date.now()-micLastStop<500){setTimeout(()=>speakScore(score,remaining),350);return;}
 
   playDartThud();
 
@@ -1926,6 +1928,7 @@ function show9Darter(callback){
 // ─── VOICE INPUT ─────────────────────────────────────────────────────────────
 let micRecognition=null;
 let micActive=false;
+let micLastStop=0;
 
 function startMic(inputId, btnId, statusId){
   const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1995,15 +1998,13 @@ function startMic(inputId, btnId, statusId){
         micDone=true;
         micRecognition.abort();
         micActive=false;
+        micLastStop=Date.now();
         inp.value=found;
         btn.classList.remove('listening');
         btn.classList.add('success');
         status.textContent = '✅ ' + found;
-        // Delay confirm slightly so mic audio stream closes before TTS starts
-        setTimeout(()=>{
-          if(inputId==='dInp')confirmDirect();
-          else if(inputId==='d121Inp')confirm121Direct();
-        },300);
+        if(inputId==='dInp')confirmDirect();
+        else if(inputId==='d121Inp')confirm121Direct();
         setTimeout(()=>{btn.classList.remove('success');status.textContent='';inp.placeholder='0–180';},1200);
       } else {
         // Nije prepoznat broj, pokaži grešku ali ostani aktivan još malo
